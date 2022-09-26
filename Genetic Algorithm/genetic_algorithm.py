@@ -168,23 +168,6 @@ def plot(points, path: list):
     plt.ylim(0, max(y) * 1.1)
     plt.show()
 
-
-def geneticAlgorithm(population, popSize, eliteSize, mutationRate, generations):
-    pop = initialPopulation(popSize, population)
-    print("Initial distance: " + str(1 / rankRoutes(pop)[0][1]))
-
-    progress = []
-    progress.append(1 / rankRoutes(pop)[0][1])
-
-    for i in range(0, generations):
-        pop = nextGeneration(pop, eliteSize, mutationRate)
-        progress.append(1 / rankRoutes(pop)[0][1])
-
-    print("Final distance: " + str(1 / rankRoutes(pop)[0][1]))
-    bestRouteIndex = rankRoutes(pop)[0][0]
-    bestRoute = pop[bestRouteIndex]
-    return bestRoute, progress
-
 def getRankRoutesWithCost(population):
     list = []
     for p in population:
@@ -193,13 +176,14 @@ def getRankRoutesWithCost(population):
     return list
 
 
-def geneticAlgorithmPlot(population, popSize, eliteSize, mutationRate, generations, points):
+def geneticAlgorithmPlot(population, popSize, eliteSize, mutationRate, generations, points, show = 0):
     pop = initialPopulation(popSize, population)
 
     progress = []
+    iterations = 1
     progress.append(1 / rankRoutes(pop)[0][1])
     startTime = time.time()
-
+    
     print("Initial distance: " + str(1 / rankRoutes(pop)[0][1]))
 
     for i in range(0, generations):
@@ -210,28 +194,67 @@ def geneticAlgorithmPlot(population, popSize, eliteSize, mutationRate, generatio
 
         progress.append(rank)
 
-        
+        iterations += 1
         for p in getRankRoutesWithCost(rankRoutes(pop)):
             dic[p] = dic.get(p, 0) + 1
         
-        if dic[max(dic, key=dic.get)] >= 25:
+        if dic[max(dic, key=dic.get)] >= 40:
             break
 
-
-    print("Final distance: " + str(1 / rankRoutes(pop)[0][1]))
+    solution = 1 / rankRoutes(pop)[0][1]
+    print("Final distance: " + str(solution))
     bestRouteIndex = rankRoutes(pop)[0][0]
     bestRoute = pop[bestRouteIndex]
 
     route = list(map(lambda x: x.index, bestRoute))
     print(f"Route: {route}")
     endTime = time.time()
+    
     print(f"Tiempo de ejecución: {(endTime - startTime):.6f} segundos")
 
-    plt.plot(progress)
-    plt.ylabel('Distance')
-    plt.xlabel('Generation')
-    plt.show()
-    plot(points, route)
+    if(show == 0):
+        plt.plot(progress)
+        plt.ylabel('Distance')
+        plt.xlabel('Generation')
+        plt.show()
+        plot(points, route)
+
+    return endTime - startTime, solution, iterations
+
+def promTiempo(iterations):
+    time = 0
+    for i in iterations:
+        time += i[0]
+
+    return time / len(iterations)
+
+def promSolution(iterations):
+    solution = 0
+    for i in iterations:
+        solution += i[1]
+
+    return solution / len(iterations)
+
+def varianza(iterations):
+    var = []
+    for i in iterations:
+        var.append(i[1])
+
+    return np.var(var)
+
+def iterationsAlgorithm(it):
+    list = []
+    for i in range(0, it):
+        value = geneticAlgorithmPlot(population=cityList, popSize=100, eliteSize=20, mutationRate=0.01, generations=1000, points = points, show = 1)
+        list.append(value)
+
+    return list
+
+def iterationsNumber(iterations):
+    it = 0
+    for i in iterations:
+        it += i[2]
+    return it / len(iterations)
 
 if __name__ == "__main__":
     cityList = []
@@ -249,6 +272,11 @@ if __name__ == "__main__":
             cityList.append(City(index = i, x=float(city[0]), y=float(city[1])))
             points.append((float(city[0]), float(city[1])))
             i+=1
- 
-    geneticAlgorithmPlot(population=cityList, popSize=100, eliteSize=20, mutationRate=0.01, generations=100, points = points)
+    
+    iterations = iterationsAlgorithm(10)
+    print(f"El promedio del tiempo es: {promTiempo(iterations):.6f}")
+    print(f"La varianza es: {varianza(iterations)}")
+    print(f"El promedio de la solución es: {promSolution(iterations)}")
+    print(f"El promedio de iteraciones es: {iterationsNumber(iterations)}")
+    #geneticAlgorithmPlot(population=cityList, popSize=100, eliteSize=20, mutationRate=0.01, generations=100, points = points)
 

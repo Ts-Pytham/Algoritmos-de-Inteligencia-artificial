@@ -29,8 +29,11 @@ if __name__ == "__main__":
     sa = SimAnneal(coords, stopping_iter=900)
     startTime = time.time()
     sa.anneal()
+    
+    endTime = time.time()
+    print(f"Route: {sa.best_solution}")
+    print(f"Tiempo de ejecución: {(endTime - startTime):.6f} segundos")
+
     sa.visualize_routes()
     sa.plot_learning()
-    endTime = time.time()
-    
-    print(f"Tiempo de ejecución: {(endTime - startTime):.6f} segundos")
+
